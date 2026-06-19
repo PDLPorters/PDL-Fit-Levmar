@@ -8,9 +8,6 @@ on:
   pull_request:
   create:
 
-env:
-  IRC_REPO_OWNER: 'jlapeyre'
-
 jobs:
   notify:
     runs-on: ubuntu-latest
@@ -20,7 +17,6 @@ jobs:
       - uses: PDLPorters/devops/github-actions/irc-notifications@master
         with:
           target-notifications: true
-          repository_owner: ${{ env.IRC_REPO_OWNER }}
   ci:
     runs-on: ${{ matrix.os }}
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
@@ -71,4 +67,3 @@ jobs:
         with:
           target-build-status: true
           needs: ${{ toJSON(needs) }}
-          repository_owner: ${{ env.IRC_REPO_OWNER }}
