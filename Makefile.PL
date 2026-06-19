@@ -81,11 +81,11 @@ $hash{ABSTRACT} = 'Nonlinear fit and optimization routines for pdl';
 $hash{META_MERGE} = {
   "meta-spec" => { version => 2 },
   resources => {
-    bugtracker  => {web=>'https://github.com/jlapeyre/PDL-Fit-Levmar/issues'},
+    bugtracker  => {web=>'https://github.com/PDLPorters/PDL-Fit-Levmar/issues'},
     repository  => {
-       url => 'git://github.com/jlapeyre/PDL-Fit-Levmar.git',
+       url => 'git://github.com/PDLPorters/PDL-Fit-Levmar.git',
        type => 'git',
-       web => 'https://github.com/jlapeyre/PDL-Fit-Levmar',
+       web => 'https://github.com/PDLPorters/PDL-Fit-Levmar',
     },
     x_IRC => 'irc://irc.perl.org/#pdl',
   },
