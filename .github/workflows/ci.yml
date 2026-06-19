@@ -9,14 +9,6 @@ on:
   create:
 
 jobs:
-  notify:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    if: ${{ always() }}
-    steps:
-      - uses: PDLPorters/devops/github-actions/irc-notifications@master
-        with:
-          target-notifications: true
   ci:
     runs-on: ${{ matrix.os }}
     if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
