@@ -1,10 +1,6 @@
-use Data::Dumper;
 use PDL;
 use PDL::Fit::Levmar;
 use PDL::NiceSlice;
-use PDL::Core ':Internal'; # For topdl()
-
-
 
 $t = (sequence(10) -5);
 $x = 3 * exp(-$t*$t * .3  );

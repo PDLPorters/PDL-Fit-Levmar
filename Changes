@@ -1,3 +1,5 @@
+- replace tapprox with is_pdl
+
 0.0109 2026-03-22
 - update docs
 - fix use of finite() breaking modern compilers

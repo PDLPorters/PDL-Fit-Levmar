@@ -11,8 +11,6 @@ use warnings;
 use strict;
 use Data::Dumper;
 
-
-
 # Note from docs:
 #
 # * If no lower bound constraint applies for p[i], use -DBL_MAX/-FLT_MAX for lb[i];

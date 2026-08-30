@@ -1,22 +1,14 @@
-use Data::Dumper;
+use strict;
+use warnings;
 use PDL;
 use PDL::Fit::Levmar;
 use PDL::Fit::Levmar::Func;
 use PDL::NiceSlice;
-use PDL::Core ':Internal'; # For topdl()
 use Test::More;
-
-use strict;
+use Test::PDL;
 
 #  @g is global options to levmar
 my @g = ( NOCOVAR => undef );
-
-sub tapprox {
-        my($a,$b) = @_;
-        my $c = abs(topdl($a)-topdl($b));
-        my $d = max($c);
-        $d < 0.0001;
-}
 
 # used to check some return types to make sure computaton was float
 sub check_type {
@@ -73,7 +65,7 @@ sub keep_work_space {
     my $ip = pdl($Type, 3,4);
     $x .= $p((0)) * exp(-$t*$t * $p((1)) );
     my $h = levmar($ip,$x,$t,$Gh,@g);
-    ok(tapprox($h->{P},$p));
+    is_pdl $h->{P}, $p;
     check_type($Type, $h->{COVAR});
 }
 

@@ -12,7 +12,6 @@ require './have_lapack';
 #print "HAVE_LAPACK = $HAVE_LAPACK\n";
 
 pp_addpm({At=>'Top'},<<'===EOD===top_pm===');
-#use Data::Dumper;
 
 =head1 NAME
 
@@ -1914,17 +1913,7 @@ sub make_argument_combinations {
             PDL_FUNC_NAME_DIFF => make_pdl_levmar_func_name_from_strings($comb_key, 'diff'),
         };
     }
-#    print Dumper(%arg_combs_analysis);
     return \%arg_combs_analysis;
-}
-
-# for testing. This replaces the pdl pp_def sub
-
-sub disable_ppdef {
-    my $name = shift;
-    my %ppdef = @_;
-    $ppdef{NAME} = $name;
-    print Dumper(\%ppdef);
 }
 
 sub write_pp_defs {

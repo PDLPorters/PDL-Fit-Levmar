@@ -1,20 +1,10 @@
+use strict;
+use warnings;
 use PDL;
 use PDL::Fit::Levmar;
 use PDL::Fit::Levmar::Func;
-use PDL::Core ':Internal'; # For topdl()
 use Test::More;
-use strict;
-
-sub tapprox {
-        my($a,$b) = @_;
-        $a = topdl($a);
-        $b = topdl($b);
-        my $c = abs($a-$b);
-        my $d = max($c);
-        print "# tapprox: $a, $b : max diff ";
-        printf "%e\n",$d;
-        $d < 0.0001;
-}
+use Test::PDL -atol => 1e-4;
 
 # Generate gaussian data.
 # $N = number of data points
@@ -22,7 +12,7 @@ sub tapprox {
 # $pfac = factors multiply by $p to make wrong guesses
 # $noise = noise amplitude on data
 sub make_gaussian {
-    my ($N,$parg,$pfac,$noise) = @_; 
+    my ($N,$parg,$pfac,$noise) = @_;
     my ($p0, $p1, $p2) = list($parg);  # three model parameters
     my $t = zeroes($N)->xlinvals(-0.5,0.5-1/$N);
     my $x = $p0 *  exp(-($t-$p1)*($t-$p1)*$p2); # co-ordinates
@@ -34,7 +24,7 @@ sub make_gaussian {
 	$x += $p0 * $noise * grandom($x);
     }
     return ($t,$x,$p,$ip,$p_actual);
-}    
+}
 
 # disable this normally
 sub prep {
@@ -47,7 +37,7 @@ sub prep {
     note "p    [" . join(",",@p) . "]";
     note "pact [" . join(",",@pact) . "]";
     my $s = "[" . join(",",@p) . "]";
-    note " tapprox(\$p, $x ), "
+    note " eq_pdl(\$p, $x ), "
 }
 
 srand(1); # must call this so that sequence of random numbers is reproducible
@@ -101,7 +91,7 @@ expf = exp(-arg*arg*p[2]);
 d0 = expf;
 d1 = p[0]*2*arg*p[2]*expf;
 d2 = p[0]*(-arg*arg)*expf;
-end jacobian 
+end jacobian
 ' ;
 
 
@@ -123,7 +113,7 @@ expf = exp(-arg*arg*p[2]);
 d0[i] = expf;
 d1 = p[0]*2*arg*p[2]*expf;
 d2[i] = p[0]*(-arg*arg)*expf;
-end jacobian 
+end jacobian
 
 ' ;
 
@@ -197,13 +187,13 @@ void jacgauss_from_c(FLOAT *p, FLOAT *jac, int m, int n, void *data)
 my $hout = levmar($p,$x,$t, FUNC => $func1 , NOCLEAN=>1);
 
 # see if all parameters are found correctly
-ok( tapprox( $hout->{P},$p_actual) , "Function def as string");
+is_pdl $hout->{P},$p_actual, "Function def as string";
 
 #---TEST------------------------------------------------
 # The same thing, but with the function definition in a file, rather than a string.
 # Definition file must end in '.lpp'
 $hout = levmar($p,$x,$t, FUNC => './t/gauss_from_def.lpp');
-ok ( tapprox( $hout->{P} ,$p_actual), "Function def from file");
+is_pdl $hout->{P} ,$p_actual, "Function def from file";
 
 #---TEST------------------------------------------------
 # Now use $func1 from above to create the Func object ourselves rather
@@ -223,12 +213,12 @@ ok ( not ( -e $filenames[0] and -e $filenames[1] and -e $filenames[2] ),
 
 # Check again the the fit works on this Func object
 $hout = levmar($p,$x,$t, FUNC => $funch1 ); # now we are passing the function handle
-ok ( tapprox( $hout->{P} ,$p_actual), "Fit with Func object");
+is_pdl $hout->{P} ,$p_actual, "Fit with Func object";
 
 #---TEST------------------------------------------------
 # Pass NOCLEAN so that the files used in compiling are not removed.
 
-$funch1 = levmar_func( FUNC => $func3, NOCLEAN => 1 ); 
+$funch1 = levmar_func( FUNC => $func3, NOCLEAN => 1 );
 @filenames = $funch1->get_file_names;
 note join( "\n" , @filenames ), "\n" ;
 ok ( -e $filenames[0] and -e $filenames[1] and -e $filenames[2] ,
@@ -237,8 +227,7 @@ ok ( -e $filenames[0] and -e $filenames[1] and -e $filenames[2] ,
 
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $funch1 ); # now we are passing the function handle
-ok ( tapprox ( $hout->{P},$p_actual),
-     "Pass Func object");
+is_pdl $hout->{P},$p_actual, "Pass Func object";
 
 # Now remove them
 unlink @filenames;
@@ -247,19 +236,19 @@ unlink @filenames;
 # Try with numeric derivative
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func1, DERIVATIVE => 'numeric' );
-ok ( tapprox ( $hout->{P},$p_actual), "Numeric derivative");
+is_pdl $hout->{P},$p_actual, "Numeric derivative";
 
 #---TEST------------------------------------------------
 # Try with explicit analytic derivative
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func1, DERIVATIVE => 'analytic');
-ok ( tapprox(  $hout->{P},$p_actual),  "Ask explicitly for analytic");
+is_pdl $hout->{P},$p_actual, "Ask explicitly for analytic";
 
 #---TEST------------------------------------------------
 # Try with numeric derivative
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func2, DERIVATIVE => 'numeric' );
-ok ( tapprox ( $hout->{P},$p_actual), "Numeric derivative, no jacobian");
+is_pdl $hout->{P},$p_actual, "Numeric derivative, no jacobian";
 
 #---TEST------------------------------------------------
 # Try with explicit analytic derivative
@@ -267,46 +256,46 @@ ok ( tapprox ( $hout->{P},$p_actual), "Numeric derivative, no jacobian");
 # though analytic is asked for.
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func2, DERIVATIVE => 'analytic' );
-ok ( tapprox( $hout->{P} ,$p_actual), "Don't give jacobian and ask for analytic derivative");
+is_pdl $hout->{P} ,$p_actual, "Don't give jacobian and ask for analytic derivative";
 
 #---TEST------------------------------------------------
 # func4 tests syntax changes in def file
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func4);
-ok ( tapprox ( $hout->{P},$p_actual), "def syntax: No end function statement is ok");
+is_pdl $hout->{P},$p_actual, "def syntax: No end function statement is ok";
 
 #---TEST------------------------------------------------
 # func5 more syntax changes
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func6);
-ok ( tapprox ( $hout->{P},$p_actual), "def syntnax: No loop statement if not needed.");
+is_pdl $hout->{P},$p_actual, "def syntnax: No loop statement if not needed.";
 
 #---TEST------------------------------------------------
 # func5 more syntax changes
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func5);
-ok ( tapprox ( $hout->{P},$p_actual), "def syntax:  d1 --> d1[i], etc.");
+is_pdl $hout->{P},$p_actual, "def syntax:  d1 --> d1[i], etc.";
 
 #---TEST------------------------------------------------
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, CSRC => 't/gauss_from_c.c' );
-ok ( tapprox($hout->{P},$p_actual), " CSRC => 't/gauss_from_c.c'");
+is_pdl $hout->{P},$p_actual, " CSRC => 't/gauss_from_c.c'";
 
 #---TEST------------------------------------------------
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => 't/gauss_from_c.c' );
-ok ( tapprox($hout->{P},$p_actual), " FUNC => 't/gauss_from_c.c'");
+is_pdl $hout->{P},$p_actual, " FUNC => 't/gauss_from_c.c'";
 
 
 #---TEST------------------------------------------------
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, CSRC => $cfunc );
-ok ( tapprox($hout->{P} ,$p_actual), " C source in string ");
+is_pdl $hout->{P} ,$p_actual, " C source in string ";
 
 #---TEST------------------------------------------------
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $cfunc );
-ok ( tapprox($hout->{P},$p_actual), " C source in string , but passed as FUNC ");
+is_pdl $hout->{P},$p_actual, " C source in string , but passed as FUNC ";
 
 
 #---TEST------------------------------------------------
@@ -318,23 +307,23 @@ if ($PDL::Fit::Levmar::HAVE_LAPACK) {
 
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func1,  FIX => [1,0,0] );
-ok ( tapprox( $hout->{P}, [2.2,0.74393499048208,0.66570905852215] ), 
-     "FIX => [1,0,0], Fix a parameter or two" );
+is_pdl $hout->{P}, pdl([2.2,0.74393499048208,0.66570905852215]),
+     "FIX => [1,0,0], Fix a parameter or two";
 prep();
 
 #---TEST------------------------------------------------
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func1,  FIX => [0,1,0] );
-ok ( tapprox( $hout->{P}, [1.97020240277861,0.45,1.11726869724001] ), 
-     "FIX => [0,1,0]" );
+is_pdl $hout->{P}, pdl([1.97020240277861,0.45,1.11726869724001]),
+     "FIX => [0,1,0]";
 prep();
 
 
 #---TEST------------------------------------------------
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func1,  FIX => [1,0,1], DERIVATIVE => 'numeric' );
-ok (  tapprox( $hout->{P}, [2.2,0.527550816516417,1.2] ), 
-     "FIX => [1,0,1], and numeric derivative" );
+is_pdl $hout->{P}, pdl([2.2,0.527550816516417,1.2]),
+     "FIX => [1,0,1], and numeric derivative";
 prep();
 
 # Linear constraints determined through A x p = b
@@ -344,52 +333,47 @@ my $A =  [ 1,0,0];
 $b =  [ $ip->at(0) ];
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func1, A => $A, B => $b );
-ok (  tapprox( $hout->{P}, [2.2,0.74393499048208,0.66570905852215] ), 
-     "A =>  [1,0,0] , B =>  [ \$p->at(0)], linear constraints " );
+is_pdl $hout->{P}, pdl([2.2,0.74393499048208,0.66570905852215]),
+     "A =>  [1,0,0] , B =>  [ \$p->at(0)], linear constraints ";
 prep();
 
 $A = [ [ 1,0,0], [0,0,1 ] ];
 $b =  [ $ip->at(0), $ip->at(2) ];
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func1, A => $A, B => $b );
-ok (   tapprox( $hout->{P}, [2.2,0.527550911537348,1.2] ), 
+is_pdl $hout->{P}, pdl([2.2,0.527550911537348,1.2]),
      "A => [[ 1,0,0], [0,0,1 ]] , B => [ 1.2, 1.3 ],".
-      "(last 2 tests same as 2 FIX's above)" );
+      "(last 2 tests same as 2 FIX's above)";
 prep();
 
 #$p = $ip->copy;
 #$hout = levmar($p,$x,$t, FUNC => $func1, FIXB => [1,0,0]);
 # something broken here. remove temporarily
-#ok ( tapprox( $hout->{P}, [2.2, 0.68758166, 0.75296237], ),
-#     "FIXB [1,0,0] " . $hout->{P} . " [2.2 0.68758166 0.75296237] "  );
-
-#ok ( tapprox( $hout->{P}, [2.2, 0.69986757, 0.75522784] ),
-#     "FIXB [1,0,0] " . $hout->{P} . " [2.2, 0.69986757, 0.75522784] "  );
+#is_pdl $hout->{P}, pdl([2.2, 0.68758166, 0.75296237]), "FIXB [1,0,0]";
+#is_pdl $hout->{P}, pdl([2.2, 0.69986757, 0.75522784]), "FIXB [1,0,0]";
 
 $p = $ip->copy;
 print "# init p " , $p, "\n";
 $hout = levmar($p,$x,$t, FUNC => $func1, FIXB => [1,0,1]);
-ok ( tapprox( $hout->{P}, [2.2, 0.52755091, 1.2] ), "FIXB [1,0,1]");
+is_pdl $hout->{P}, pdl([2.2, 0.52755091, 1.2]), "FIXB [1,0,1]";
 prep();
 }
 
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func1, UB => [2.3, .5, 3 ], LB => [ 0,-.1, .5] );
-ok ( tapprox( $hout->{P}, $p_actual ),
-     "UB , LB; Box constraints  ");
+is_pdl $hout->{P}, $p_actual, "UB , LB; Box constraints";
 
 prep();
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FUNC => $func1, UB => [2.3, .5, 3 ], LB => [ 0,-.1, .5],
    DERIVATIVE => 'numeric' );
-ok ( tapprox( $hout->{P}, $p_actual ),
-     "UB , LB ; Box constraints, numeric derivative");
+is_pdl $hout->{P}, $p_actual,
+     "UB , LB ; Box constraints, numeric derivative";
 
 prep();
 $p = $ip->copy;
 $hout = levmar($p,$x,$t, FIXB=> [1,0,1], FUNC => $func1, UB => [2.3, .5, 3 ], LB => [ 0,-.1, .5] );
 my $expected = pdl '[2.2 0.5 1.2]';
-ok ( tapprox( $hout->{P}, $expected ), "UB, LB; Box constraints with FIXB")
-  or diag "got=$hout->{P}\nexpected=$expected";
+is_pdl $hout->{P}, $expected, "UB, LB; Box constraints with FIXB";
 
 done_testing;

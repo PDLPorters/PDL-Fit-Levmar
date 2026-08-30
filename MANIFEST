@@ -19,7 +19,7 @@ Func/getsymbol.c
 Func/Makefile.PL
 Func/purepdlt.pl
 Func/t/call.t
-Func/t/func.t.d
+Func/t/func.t
 INSTALL
 levmar-2.6/Axb.c
 levmar-2.6/Axb_core.c
@@ -94,6 +94,6 @@ t/liblevmar.t
 t/ndim.t
 t/ros.c
 t/simple_gaussian.lpp
-t/syntax.t.d
+t/syntax.t
 t/thread.t
 TODO

@@ -1,27 +1,16 @@
-use Data::Dumper;
+use strict;
+use warnings;
 use PDL;
 use PDL::Fit::Levmar;
 use PDL::Fit::Levmar::Func;
 use PDL::NiceSlice;
-use PDL::Core ':Internal'; # For topdl()
 use Test::More;
-
-use strict;
+use Test::PDL qw(is_pdl eq_pdl), -atol => 1e-4;
 
 # Checks doing a multidimensional fit.
 
 #  @g is global options to levmar
 my @g = ( NOCOVAR => undef );
-
-sub tapprox {
-        my($a,$b,$eps) = @_;
-	$eps = 0.0001 unless defined $eps;
-        my $c = abs(topdl($a)-topdl($b));
-        my $d = max($c);
-       	print "# tapprox: $a, $b : max diff ";
-        printf "%e\n",$d;
-        $d < $eps;
-}
 
 sub dimst {
     my $x = shift;
@@ -48,7 +37,8 @@ sub fit_gauss2d {
     my $p1 = pdl $Type, [ 1,1,1];
     gauss2d( $p, $xlin, $t->copy);
     my $h = levmar($p1,$xlin,$t,\&gauss2d);
-    ok ( (tapprox($p,$h->{P}) and not  tapprox($p1,$h->{P}) ) , "-- 2-d gaussian");
+    is_pdl $h->{P},$p, "-- 2-d gaussian";
+    ok !eq_pdl($h->{P},$p1), "-- 2-d gaussian";
 }
 
 fit_gauss2d(double);

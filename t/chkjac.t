@@ -1,22 +1,14 @@
-use Data::Dumper;
+use strict;
+use warnings;
 use PDL;
 use PDL::Fit::Levmar;
 use PDL::Fit::Levmar::Func;
 use PDL::NiceSlice;
-use PDL::Core ':Internal'; # For topdl()
 use Test::More;
-use strict;
+use Test::PDL;
 
 #  @g is global options to levmar
 my @g = ( NOCOVAR => undef );
-
-sub tapprox {
-        my($a,$b,$eps) = @_;
-        $eps = 0.00001 unless $eps;
-        my $c = abs(topdl($a)-topdl($b));
-        my $d = max($c);
-        $d < $eps;
-}
 
 sub dimst {
     my $x = shift;
@@ -76,8 +68,7 @@ sub chkjac {
     my $jref = \&jacgauss;
     my $gh2 = levmar_func(FUNC=> $fref, JFUNC => $jref);
     my $err2 = levmar_chkjac($gh2,$p,$t);
-    ok(tapprox($err2,$err,$eps), "Chkjac $Type lpp results == perl sub results")
-      or diag "err1= $err\nerr2= $err2";
+    is_pdl $err2,$err,{atol=>$eps, test_name=>"Chkjac $Type lpp results == perl sub results"};
 }
 
 chkjac(1e-5, double);
