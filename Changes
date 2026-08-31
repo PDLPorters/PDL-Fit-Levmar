@@ -1,3 +1,5 @@
+- minimum PDL now 2.101 (#12) - thanks @andk for report
+
 0.0110 2026-08-30
 - replace tapprox with is_pdl
 

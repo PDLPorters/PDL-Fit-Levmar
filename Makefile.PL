@@ -56,12 +56,12 @@ $hash{clean}{FILES} .= " " . $hash{OBJECT} .
 $hash{OPTIMIZE} = "-O3";  # from levmar src Makefile minus clang-incompat unroll-loops
 
 $hash{PREREQ_PM} = { 
-    'PDL' => '2.075',
+    'PDL' => '2.101',
     'File::Temp' => 0,
 };
 
 $hash{CONFIGURE_REQUIRES} = {
-    'PDL' => '2.075', # broadcastloop
+    'PDL' => '2.101', # unclear, GH#12 - t/ndim.t getting wrong type
     'ExtUtils::MakeMaker' => 0,
 };
 
